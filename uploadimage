@@ -1,0 +1,46 @@
+import multer from 'multer';
+import path from 'path';
+import dbConnect from '../../../utils/mongo';
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: path.join(process.cwd(), 'public/uploads'),
+    filename: (req, file, callback) => {
+      // const now = new Date();
+      // const year = now.getFullYear();
+      // const month = String(now.getMonth() + 1).padStart(2, '0');
+      // const day = String(now.getDate()).padStart(2, '0');
+      // const hours = String(now.getHours()).padStart(2, '0');
+      // const minutes = String(now.getMinutes()).padStart(2, '0');
+      // const seconds = String(now.getSeconds()).padStart(2, '0');
+      const originalExtension = path.extname(file.originalname);
+      console.log(originalExtension)
+      const newFileName = `${file.originalname}`;
+      callback(null, newFileName);
+    },
+  }),
+});
+
+export const config = {
+  api: {
+    bodyParser: false,
+    timeout: 0,
+  },
+};
+
+export default async function handler(req, res) {
+    await dbConnect()
+  await upload.single('image')(req, res, (error) => {
+    if (error instanceof multer.MulterError) {
+      // Multer error occurred
+      console.error('Error uploading file:', error);
+      res.status(500).json({ error: 'Error uploading file' });
+    } else if (error) {
+      // Other error occurred
+      console.error('Error uploading file:', error);
+      res.status(500).json({ error: 'Error uploading file' });
+    } else {
+      // File uploaded successfully
+      res.status(200).json({ message: 'File uploaded successfully' });
+    }
+  });
+}
